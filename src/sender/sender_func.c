@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
 
 int bindSocketIPv4(const int socketFileDescriptor, struct sockaddr_in socketAddress) {

@@ -1,7 +1,8 @@
-#include "../include/utils.h"
+#include "../../include/utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 int createSocketIPv4TCP(int* socketFileDescriptor) {
     *socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
