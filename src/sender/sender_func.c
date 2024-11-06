@@ -1,6 +1,5 @@
 #include "../../include/sender.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -28,27 +27,51 @@ int acceptConnection(int* clientSocket, const int socketFileDescriptor, struct s
 }
 
 int sendFile(const int connectionSocket, const char* fileName) {
-    FILE* fileDescriptor = fopen(fileName, "rb"); // Open in binary mode
+    FILE* fileDescriptor = NULL;
+
+    if (openFileInBinaryReadMode(fileDescriptor, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    if (sendFileSize(connectionSocket, fileDescriptor) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    if (sendFileData(connectionSocket, fileDescriptor) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    fclose(fileDescriptor);
+    return EXIT_SUCCESS;
+}
+
+int sendFileSize(const int connectionSocket, FILE* fileDescriptor) {
+    const long fileSize = getFileSize(fileDescriptor);
+    if (write(connectionSocket, &fileSize, sizeof(fileSize)) == -1) {
+        perror("Error sending file size");
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int sendFileData(const int connectionSocket, FILE* fileDescriptor) {
+    char buffer[BUFSIZ];
+    size_t bytesRead;
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), fileDescriptor)) > 0) {
+        if (write(connectionSocket, buffer, bytesRead) == -1) {
+            perror("Error sending chunk of file data");
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int openFileInBinaryReadMode(const FILE* fileDescriptor, const char* fileName) {
+    fileDescriptor = fopen(fileName, "rb");
     if (fileDescriptor == NULL) {
         perror("Error opening file");
         return EXIT_FAILURE;
     }
-
-    // Get file size
-    fseek(fileDescriptor, 0, SEEK_END);
-    long fileSize = ftell(fileDescriptor);
-    fseek(fileDescriptor, 0, SEEK_SET);
-
-    // Send the file size
-    write(connectionSocket, &fileSize, sizeof(fileSize));
-
-    // Send the file data in chunks
-    char buffer[BUFSIZ];
-    size_t bytesRead;
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), fileDescriptor)) > 0) {
-        write(connectionSocket, buffer, bytesRead);
-    }
-
-    fclose(fileDescriptor);
     return EXIT_SUCCESS;
+}
+
+long getFileSize(FILE* fileDescriptor) {
+    fseek(fileDescriptor, 0, SEEK_END);
+    const long fileSize = ftell(fileDescriptor);
+    fseek(fileDescriptor, 0, SEEK_SET);
+    return fileSize;
 }
