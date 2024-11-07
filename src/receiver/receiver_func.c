@@ -1,7 +1,7 @@
 #include "../../include/receiver.h"
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 
@@ -15,39 +15,80 @@ int connectToSender(const int socketFileDescriptor, const struct sockaddr_in soc
 }
 
 int receiveFile(const int socketFileDescriptor) {
-    const char *home = getenv("HOME");
-    if (home == NULL) {
-        fprintf(stderr, "Failed to get HOME environment variable.\n");
-        return EXIT_FAILURE;
-    }
+    char* pathToReceivedFile;
+    const char* fileName = "test.jpg";
+    if (setPathToReceivedFile(&pathToReceivedFile, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
 
-    char filePath[1024];
-    snprintf(filePath, sizeof(filePath), "%s/Downloads/test.jpg", home);
-    printf("Downloading file: %s\n", filePath);
-
-    // Receive the file size
     long fileSize;
-    read(socketFileDescriptor, &fileSize, sizeof(fileSize));
+    if (receiveFileSize(socketFileDescriptor, &fileSize) == EXIT_FAILURE) return EXIT_FAILURE;
 
-    // Open file in binary mode
-    FILE *receivedFile = fopen(filePath, "wb");
-    if (receivedFile == NULL) {
-        perror("Error creating file");
+    FILE *receivedFile;
+    if (openFileInBinaryWriteMode(&receivedFile, pathToReceivedFile) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    if (receiveFileData(socketFileDescriptor, &receivedFile, fileSize) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    printf("File received successfully: %s\n", pathToReceivedFile);
+    fclose(receivedFile);
+    free(pathToReceivedFile);
+
+    return EXIT_SUCCESS;
+}
+
+int receiveFileSize(const int socketFileDescriptor, long *fileSize) {
+    if (read(socketFileDescriptor, &fileSize, sizeof(*fileSize)) != sizeof(*fileSize)) {
+        perror("Error receiving file size");
         return EXIT_FAILURE;
     }
+    return EXIT_SUCCESS;
+}
 
-    // Receive the file data in chunks
+int receiveFileData(const int socketFileDescriptor, FILE** receivedFile, const long fileSize) {
     char buffer[BUFSIZ];
     ssize_t bytesReceived;
     long remainingData = fileSize;
 
     while (remainingData > 0 && (bytesReceived = read(socketFileDescriptor, buffer, sizeof(buffer))) > 0) {
-        fwrite(buffer, 1, bytesReceived, receivedFile);
+        const size_t bytesWritten = fwrite(buffer, 1, bytesReceived, *receivedFile);
+        if (bytesWritten != bytesReceived) {
+            perror("Error writing data to file");
+            return EXIT_FAILURE;
+        }
         remainingData -= bytesReceived;
     }
 
-    fclose(receivedFile);
-    printf("File received successfully\n");
+    if (remainingData > 0) {
+        fprintf(stderr, "Error: File not fully received. Remaining data: %ld bytes\n", remainingData);
+        return EXIT_FAILURE;
+    }
 
+    return EXIT_SUCCESS;
+}
+
+int setPathToReceivedFile(char **pathToReceivedFile, const char *fileName) {
+    char* homeDirectory;
+    if (setPathToHomeDirectory(&homeDirectory) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    const size_t pathToReceivedFileSize = strlen(homeDirectory) + strlen(fileName) + 12;
+    *pathToReceivedFile = (char*)malloc(pathToReceivedFileSize * sizeof(char));
+    snprintf(*pathToReceivedFile, pathToReceivedFileSize, "%s/Downloads/%s", homeDirectory, fileName);
+
+    return EXIT_SUCCESS;
+}
+
+int setPathToHomeDirectory(char **homeDirectory) {
+    *homeDirectory = getenv("HOME");
+    if (*homeDirectory == NULL) {
+        fprintf(stderr, "Failed to get HOME environment variable.\n");
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int openFileInBinaryWriteMode(FILE** receivedFile, const char* pathToReceivedFile) {
+    *receivedFile = fopen(pathToReceivedFile, "wb");
+    if (*receivedFile == NULL) {
+        perror("Error creating file");
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
