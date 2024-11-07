@@ -29,7 +29,7 @@ int acceptConnection(int* clientSocket, const int socketFileDescriptor, struct s
 int sendFile(const int connectionSocket, const char* fileName) {
     FILE* fileDescriptor = NULL;
 
-    if (openFileInBinaryReadMode(fileDescriptor, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
+    if (openFileInBinaryReadMode(&fileDescriptor, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
 
     if (sendFileSize(connectionSocket, fileDescriptor) == EXIT_FAILURE) return EXIT_FAILURE;
 
@@ -60,9 +60,9 @@ int sendFileData(const int connectionSocket, FILE* fileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int openFileInBinaryReadMode(const FILE* fileDescriptor, const char* fileName) {
-    fileDescriptor = fopen(fileName, "rb");
-    if (fileDescriptor == NULL) {
+int openFileInBinaryReadMode(FILE** fileDescriptor, const char* fileName) {
+    *fileDescriptor = fopen(fileName, "rb");
+    if (*fileDescriptor == NULL) {
         perror("Error opening file");
         return EXIT_FAILURE;
     }

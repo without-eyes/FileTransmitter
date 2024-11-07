@@ -14,7 +14,7 @@ int sendFileSize(int connectionSocket, FILE* fileDescriptor);
 
 int sendFileData(int connectionSocket, FILE* fileDescriptor);
 
-int openFileInBinaryReadMode(const FILE* fileDescriptor, const char* fileName);
+int openFileInBinaryReadMode(FILE** fileDescriptor, const char* fileName);
 
 long getFileSize(FILE* fileDescriptor);
 
