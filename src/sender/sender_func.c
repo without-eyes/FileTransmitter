@@ -36,6 +36,9 @@ int sendFile(const int connectionSocket, const char* fileName) {
     if (sendFileData(connectionSocket, fileDescriptor) == EXIT_FAILURE) return EXIT_FAILURE;
 
     fclose(fileDescriptor);
+
+    puts("File was successfully sent!");
+
     return EXIT_SUCCESS;
 }
 

@@ -22,7 +22,5 @@ int main(int argc, char* argv[]) {
     close(connectionSocket);
     close(socketFileDescriptor);
 
-    puts("done");
-
     return EXIT_SUCCESS;
 }
