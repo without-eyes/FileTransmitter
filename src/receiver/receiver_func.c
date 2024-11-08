@@ -68,11 +68,6 @@ int receiveFileData(const int socketFileDescriptor, FILE** receivedFile, const l
         remainingData -= bytesReceived;
     }
 
-    if (remainingData > 0) {
-        fprintf(stderr, "Error: File not fully received. Remaining data: %ld bytes\n", remainingData);
-        return EXIT_FAILURE;
-    }
-
     return EXIT_SUCCESS;
 }
 
