@@ -15,8 +15,10 @@ int connectToSender(const int socketFileDescriptor, const struct sockaddr_in soc
 }
 
 int receiveFile(const int socketFileDescriptor) {
+    char* fileName;
+    if (receiveFileName(socketFileDescriptor, &fileName) != EXIT_SUCCESS) return EXIT_FAILURE;
+
     char* pathToReceivedFile;
-    const char* fileName = "test.jpg";
     if (setPathToReceivedFile(&pathToReceivedFile, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
 
     long fileSize;
@@ -30,7 +32,17 @@ int receiveFile(const int socketFileDescriptor) {
     printf("File received successfully: %s\n", pathToReceivedFile);
     fclose(receivedFile);
     free(pathToReceivedFile);
+    free(fileName);
 
+    return EXIT_SUCCESS;
+}
+
+int receiveFileName(const int socketFileDescriptor, char** fileName) {
+    *fileName = (char*)malloc(MAX_FILENAME_LENGTH * sizeof(char));
+    if (recv(socketFileDescriptor, *fileName, MAX_FILENAME_LENGTH, 0) == -1) {
+        perror("Error receiving file name");
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 

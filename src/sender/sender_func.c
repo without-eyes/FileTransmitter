@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -26,10 +27,12 @@ int acceptConnection(int* clientSocket, const int socketFileDescriptor, struct s
     return EXIT_SUCCESS;
 }
 
-int sendFile(const int connectionSocket, const char* fileName) {
+int sendFile(const int connectionSocket, char* pathToFile) {
     FILE* fileDescriptor = NULL;
 
-    if (openFileInBinaryReadMode(&fileDescriptor, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
+    if (openFileInBinaryReadMode(&fileDescriptor, pathToFile) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    if (sendFileName(connectionSocket, pathToFile) == EXIT_FAILURE) return EXIT_FAILURE;
 
     if (sendFileSize(connectionSocket, fileDescriptor) == EXIT_FAILURE) return EXIT_FAILURE;
 
@@ -39,6 +42,15 @@ int sendFile(const int connectionSocket, const char* fileName) {
 
     puts("File was successfully sent!");
 
+    return EXIT_SUCCESS;
+}
+
+int sendFileName(const int connectionSocket, char* pathToFile) {
+    const char* filename = basename(pathToFile);
+    if (send(connectionSocket, filename, sizeof(filename), 0) == -1) {
+        perror("Error sending file name");
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
@@ -63,8 +75,8 @@ int sendFileData(const int connectionSocket, FILE* fileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int openFileInBinaryReadMode(FILE** fileDescriptor, const char* fileName) {
-    *fileDescriptor = fopen(fileName, "rb");
+int openFileInBinaryReadMode(FILE** fileDescriptor, const char* pathToFile) {
+    *fileDescriptor = fopen(pathToFile, "rb");
     if (*fileDescriptor == NULL) {
         perror("Error opening file");
         return EXIT_FAILURE;

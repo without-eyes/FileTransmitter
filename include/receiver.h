@@ -3,10 +3,13 @@
 
 #include <stdio.h>
 #include <netinet/in.h>
+#define MAX_FILENAME_LENGTH 32
 
 int connectToSender(int socketFileDescriptor, struct sockaddr_in socketAddress);
 
 int receiveFile(int socketFileDescriptor);
+
+int receiveFileName(int socketFileDescriptor, char** fileName);
 
 int receiveFileSize(int socketFileDescriptor, long *fileSize);
 

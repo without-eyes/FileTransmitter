@@ -5,7 +5,7 @@
 #include "../../include/sender.h"
 #include "../../include/utils.h"
 
-int main(int argc, char* argv[]) {
+int main() {
     int socketFileDescriptor;
     if (createSocketIPv4TCP(&socketFileDescriptor)) return EXIT_FAILURE;
 
@@ -17,7 +17,11 @@ int main(int argc, char* argv[]) {
     int connectionSocket;
     acceptConnection(&connectionSocket, socketFileDescriptor, socketAddress);
 
-    if (sendFile(connectionSocket, "./test.jpg")) return EXIT_FAILURE;
+    char pathToFile[MAX_FILEPATH_LENGTH];
+    printf("Enter path to file you want to send: ");
+    scanf("%s", pathToFile);
+
+    if (sendFile(connectionSocket, pathToFile)) return EXIT_FAILURE;
 
     close(connectionSocket);
     close(socketFileDescriptor);
