@@ -1,10 +1,21 @@
 #include "../../include/utils.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
-int createSocketIPv4TCP(int* socketFileDescriptor) {
+#ifdef _WIN32
+int initializeWinsock(void) {
+    struct WSAData wsaData;
+    WORD DLLVersion = MAKEWORD(2, 1);
+    if (WSAStartup(DLLVersion, &wsaData)) {
+        int error = WSAGetLastError();
+        printf("Error: %d", error);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+#endif
+
+int createSocketIPv4TCP(SOCKET* socketFileDescriptor) {
     *socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     if (*socketFileDescriptor == -1) {
         perror("Socket creation failed");
@@ -13,7 +24,7 @@ int createSocketIPv4TCP(int* socketFileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int createAddressIPv4(struct sockaddr_in* socketAddress, const char* address, const int port) {
+int createAddressIPv4(SOCKADDR_IN * socketAddress, const char* address, const int port) {
     socketAddress->sin_family = AF_INET;
     socketAddress->sin_addr.s_addr = inet_addr(address);
     socketAddress->sin_port = htons(port);

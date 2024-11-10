@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/socket.h>
 
-int connectToSender(const int socketFileDescriptor, const struct sockaddr_in socketAddress) {
+int connectToSender(const SOCKET socketFileDescriptor, const struct sockaddr_in socketAddress) {
     const int connectionResult = connect(socketFileDescriptor, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
     if (connectionResult == -1) {
         perror("Connection with the server failed");
@@ -14,12 +13,13 @@ int connectToSender(const int socketFileDescriptor, const struct sockaddr_in soc
     return EXIT_SUCCESS;
 }
 
-int receiveFile(const int socketFileDescriptor) {
+int receiveFile(const SOCKET socketFileDescriptor) {
     char* fileName;
     if (receiveFileName(socketFileDescriptor, &fileName) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     char* pathToReceivedFile;
     if (setPathToReceivedFile(&pathToReceivedFile, fileName) == EXIT_FAILURE) return EXIT_FAILURE;
+    puts(pathToReceivedFile);
 
     long fileSize;
     if (receiveFileSize(socketFileDescriptor, &fileSize) == EXIT_FAILURE) return EXIT_FAILURE;
@@ -37,7 +37,7 @@ int receiveFile(const int socketFileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int receiveFileName(const int socketFileDescriptor, char** fileName) {
+int receiveFileName(const SOCKET socketFileDescriptor, char** fileName) {
     *fileName = (char*)malloc(MAX_FILENAME_LENGTH * sizeof(char));
     if (recv(socketFileDescriptor, *fileName, MAX_FILENAME_LENGTH, 0) == -1) {
         perror("Error receiving file name");
@@ -46,15 +46,15 @@ int receiveFileName(const int socketFileDescriptor, char** fileName) {
     return EXIT_SUCCESS;
 }
 
-int receiveFileSize(const int socketFileDescriptor, long *fileSize) {
-    if (read(socketFileDescriptor, &fileSize, sizeof(*fileSize)) != sizeof(*fileSize)) {
+int receiveFileSize(const SOCKET socketFileDescriptor, long *fileSize) {
+    if (recv(socketFileDescriptor, (char *)fileSize, sizeof(*fileSize), 0) != sizeof(*fileSize)) {
         perror("Error receiving file size");
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
 
-int receiveFileData(const int socketFileDescriptor, FILE** receivedFile, const long fileSize) {
+int receiveFileData(const SOCKET socketFileDescriptor, FILE** receivedFile, const long fileSize) {
     char buffer[BUFSIZ];
     ssize_t bytesReceived;
     long remainingData = fileSize;
@@ -83,9 +83,15 @@ int setPathToReceivedFile(char **pathToReceivedFile, const char *fileName) {
 }
 
 int setPathToHomeDirectory(char **homeDirectory) {
-    *homeDirectory = getenv("HOME");
+#ifdef _WIN32
+    char* environmentVariable = "USERPROFILE";
+#elif unix
+    char* environmentVariable = "HOME";
+#endif
+
+    *homeDirectory = getenv(environmentVariable);
     if (*homeDirectory == NULL) {
-        fprintf(stderr, "Failed to get HOME environment variable.\n");
+        fprintf(stderr, "Failed to get %s environment variable.\n", environmentVariable);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

@@ -2,18 +2,18 @@
 #define CLIENT_H
 
 #include <stdio.h>
-#include <netinet/in.h>
+#include "os_directives.h"
 #define MAX_FILENAME_LENGTH 32
 
-int connectToSender(int socketFileDescriptor, struct sockaddr_in socketAddress);
+int connectToSender(SOCKET socketFileDescriptor, SOCKADDR_IN socketAddress);
 
-int receiveFile(int socketFileDescriptor);
+int receiveFile(SOCKET socketFileDescriptor);
 
-int receiveFileName(int socketFileDescriptor, char** fileName);
+int receiveFileName(SOCKET socketFileDescriptor, char** fileName);
 
-int receiveFileSize(int socketFileDescriptor, long *fileSize);
+int receiveFileSize(SOCKET socketFileDescriptor, long *fileSize);
 
-int receiveFileData(int socketFileDescriptor, FILE** receivedFile, long fileSize);
+int receiveFileData(SOCKET socketFileDescriptor, FILE** receivedFile, long fileSize);
 
 int setPathToReceivedFile(char **pathToReceivedFile, const char *fileName);
 
