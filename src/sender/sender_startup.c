@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../../include/sender.h"
@@ -10,7 +11,7 @@ int main() {
     if (createSocketIPv4TCP(&socketFileDescriptor)) return EXIT_FAILURE;
 
     struct sockaddr_in socketAddress;
-    if (createAddressIPv4(&socketAddress, "127.0.0.1", 1111)) return EXIT_FAILURE;
+    if (createAddressIPv4(&socketAddress)) return EXIT_FAILURE;
 
     if (bindSocketIPv4(socketFileDescriptor, socketAddress)) return EXIT_FAILURE;
 
@@ -19,7 +20,8 @@ int main() {
 
     char pathToFile[MAX_FILEPATH_LENGTH];
     printf("Enter path to file you want to send: ");
-    scanf("%s", pathToFile);
+    fgets(pathToFile, MAX_FILEPATH_LENGTH, stdin);
+    pathToFile[strlen(pathToFile) - 1] = '\0';
 
     if (sendFile(connectionSocket, pathToFile)) return EXIT_FAILURE;
 
