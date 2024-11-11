@@ -10,8 +10,6 @@ RECEIVER_SOURCE = $(wildcard ${SRCDIR}receiver/*.c) \
 				$(wildcard ${SRCDIR}other/*.c)
 
 all: clean sender_compile receiver_compile
-sender: clean sender_compile
-receiver: clean receiver_compile
 
 sender_compile:
 	$(CC) $(SENDER_SOURCE) $(CFLAGS) -o sender
