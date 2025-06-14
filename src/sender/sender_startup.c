@@ -13,7 +13,7 @@ int main() {
     struct sockaddr_in socketAddress;
     if (createAddressIPv4(&socketAddress)) return EXIT_FAILURE;
 
-    if (bindSocketIPv4(socketFileDescriptor, socketAddress)) return EXIT_FAILURE;
+    if (bindSocketIPv4(socketFileDescriptor, &socketAddress)) return EXIT_FAILURE;
 
     int connectionSocket;
     acceptConnection(&connectionSocket, socketFileDescriptor, socketAddress);

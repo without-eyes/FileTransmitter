@@ -11,7 +11,7 @@ int main() {
     struct sockaddr_in socketAddress;
     if (createAddressIPv4(&socketAddress)) return EXIT_FAILURE;
 
-    if (connectToSender(socketFileDescriptor, socketAddress)) return EXIT_FAILURE;
+    if (connectToSender(socketFileDescriptor, &socketAddress)) return EXIT_FAILURE;
 
     if (receiveFile(socketFileDescriptor)) return EXIT_FAILURE;
 
