@@ -9,13 +9,13 @@ SENDER_SOURCE = $(wildcard ${SRCDIR}sender/*.c) \
 RECEIVER_SOURCE = $(wildcard ${SRCDIR}receiver/*.c) \
 				$(wildcard ${SRCDIR}other/*.c)
 
-all: clean sender_compile receiver_compile
+all: clean sender receiver
 
-sender_compile:
-	$(CC) $(SENDER_SOURCE) $(CFLAGS) -o sender
+sender: $(SENDER_SOURCE)
+	$(CC) $(SENDER_SOURCE) $(CFLAGS) -o $@
 
-receiver_compile:
-	$(CC) $(RECEIVER_SOURCE) $(CFLAGS) -o receiver
+receiver: $(RECEIVER_SOURCE)
+	$(CC) $(RECEIVER_SOURCE) $(CFLAGS) -o $@
 
 clean:
 	rm -f ./sender ./receiver
