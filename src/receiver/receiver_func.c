@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-int connectToSender(const int socketFileDescriptor, const struct sockaddr_in socketAddress) {
-    const int connectionResult = connect(socketFileDescriptor, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
+int connectToSender(int socketFileDescriptor, struct sockaddr_in* socketAddress) {
+    const int connectionResult = connect(socketFileDescriptor, (struct sockaddr*)&socketAddress, sizeof(*socketAddress));
     if (connectionResult == -1) {
         perror("Connection with the server failed");
         return EXIT_FAILURE;
@@ -14,7 +14,7 @@ int connectToSender(const int socketFileDescriptor, const struct sockaddr_in soc
     return EXIT_SUCCESS;
 }
 
-int receiveFile(const int socketFileDescriptor) {
+int receiveFile(int socketFileDescriptor) {
     char* fileName;
     if (receiveFileName(socketFileDescriptor, &fileName) != EXIT_SUCCESS) return EXIT_FAILURE;
 
@@ -37,7 +37,7 @@ int receiveFile(const int socketFileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int receiveFileName(const int socketFileDescriptor, char** fileName) {
+int receiveFileName(int socketFileDescriptor, char** fileName) {
     *fileName = (char*)malloc(MAX_FILENAME_LENGTH * sizeof(char));
     if (recv(socketFileDescriptor, *fileName, MAX_FILENAME_LENGTH, 0) == -1) {
         perror("Error receiving file name");
@@ -46,7 +46,7 @@ int receiveFileName(const int socketFileDescriptor, char** fileName) {
     return EXIT_SUCCESS;
 }
 
-int receiveFileSize(const int socketFileDescriptor, long *fileSize) {
+int receiveFileSize(int socketFileDescriptor, long *fileSize) {
     if (read(socketFileDescriptor, &fileSize, sizeof(*fileSize)) != sizeof(*fileSize)) {
         perror("Error receiving file size");
         return EXIT_FAILURE;
@@ -54,7 +54,7 @@ int receiveFileSize(const int socketFileDescriptor, long *fileSize) {
     return EXIT_SUCCESS;
 }
 
-int receiveFileData(const int socketFileDescriptor, FILE** receivedFile, const long fileSize) {
+int receiveFileData(int socketFileDescriptor, FILE** receivedFile, const long fileSize) {
     char buffer[BUFSIZ];
     ssize_t bytesReceived;
     long remainingData = fileSize;

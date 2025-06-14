@@ -7,8 +7,8 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 
-int bindSocketIPv4(const int socketFileDescriptor, struct sockaddr_in socketAddress) {
-    const int bindingResult = bind(socketFileDescriptor, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
+int bindSocketIPv4(int socketFileDescriptor, struct sockaddr_in* socketAddress) {
+    const int bindingResult = bind(socketFileDescriptor, (struct sockaddr*)socketAddress, sizeof(*socketAddress));
     if (bindingResult == -1) {
         perror("Connection with the client failed");
         return EXIT_FAILURE;
@@ -16,7 +16,7 @@ int bindSocketIPv4(const int socketFileDescriptor, struct sockaddr_in socketAddr
     return EXIT_SUCCESS;
 }
 
-int acceptConnection(int* clientSocket, const int socketFileDescriptor, struct sockaddr_in socketAddress) {
+int acceptConnection(int* clientSocket, int socketFileDescriptor, struct sockaddr_in socketAddress) {
     listen(socketFileDescriptor, 1);
     socklen_t socketLength = sizeof(socketAddress);
     *clientSocket = accept(socketFileDescriptor, (struct sockaddr*)&socketAddress, &socketLength);
@@ -27,7 +27,7 @@ int acceptConnection(int* clientSocket, const int socketFileDescriptor, struct s
     return EXIT_SUCCESS;
 }
 
-int sendFile(const int connectionSocket, char* pathToFile) {
+int sendFile(int connectionSocket, char* pathToFile) {
     FILE* fileDescriptor = NULL;
 
     if (openFileInBinaryReadMode(&fileDescriptor, pathToFile) == EXIT_FAILURE) return EXIT_FAILURE;
@@ -45,7 +45,7 @@ int sendFile(const int connectionSocket, char* pathToFile) {
     return EXIT_SUCCESS;
 }
 
-int sendFileName(const int connectionSocket, char* pathToFile) {
+int sendFileName(int connectionSocket, char* pathToFile) {
     const char* filename = basename(pathToFile);
     if (send(connectionSocket, filename, sizeof(filename), 0) == -1) {
         perror("Error sending file name");
@@ -54,7 +54,7 @@ int sendFileName(const int connectionSocket, char* pathToFile) {
     return EXIT_SUCCESS;
 }
 
-int sendFileSize(const int connectionSocket, FILE* fileDescriptor) {
+int sendFileSize(int connectionSocket, FILE* fileDescriptor) {
     const long fileSize = getFileSize(fileDescriptor);
     if (write(connectionSocket, &fileSize, sizeof(fileSize)) == -1) {
         perror("Error sending file size");
@@ -63,7 +63,7 @@ int sendFileSize(const int connectionSocket, FILE* fileDescriptor) {
     return EXIT_SUCCESS;
 }
 
-int sendFileData(const int connectionSocket, FILE* fileDescriptor) {
+int sendFileData(int connectionSocket, FILE* fileDescriptor) {
     char buffer[BUFSIZ];
     size_t bytesRead;
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), fileDescriptor)) > 0) {
