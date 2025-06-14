@@ -58,6 +58,8 @@ This project implements a simple file transfer system in C, where a sender progr
 ## Example
 
 ```plaintext
+Enter address: 127.0.0.1
+Enter port: 1111
 Enter path to file you want to send: C:\Users\without eyes\Pictures\image.png
 File was successfully sent!
 ```
